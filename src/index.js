@@ -85,7 +85,14 @@ function loadSideBar() {
     const projectItem = document.createElement('div');
     projectItem.className = 'projectContainer';
     projectItem.textContent = project.name;
+
+    if (project.id === currentProjectId) {
+      projectItem.classList.add('selected');
+    }
+
     projectItem.addEventListener('click', () => {
+      document.querySelectorAll('.projectContainer.selected').forEach(item => item.classList.remove('selected'));
+      projectItem.classList.add('selected');
       currentProjectId = project.id;
       displayToDos(project);
     });

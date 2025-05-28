@@ -47,6 +47,11 @@ body {
     background-color: #E5751F;
 }
 
+.projectContainer.selected {
+    background-color: #E5751F;
+    font-weight: bold;
+}
+
 .todo-item {
     display: flex;
     align-items: center;
@@ -103,4 +108,3 @@ form label {
     font-weight: bold;
     color: black;
 }
-
