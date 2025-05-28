@@ -4,6 +4,18 @@ export default function loadTodoItem(todo) {
     // Create the elements
     const todoItem = document.createElement('div');
     todoItem.className = 'todo-item';
+    todoItem.draggable = true;
+    todoItem.dataset.id = todo.id;
+
+    // Drag events
+    todoItem.addEventListener('dragstart', (e) => {
+        todoItem.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', todo.id);
+    });
+
+    todoItem.addEventListener('dragend', () => {
+        todoItem.classList.remove('dragging');
+    });
 
     // Create checkbox
     const checkbox = document.createElement('input');
@@ -15,22 +27,19 @@ export default function loadTodoItem(todo) {
     const todoText = document.createElement('span');
     todoText.textContent = todo.text;
 
+    const label = document.createElement('label');
+    const text = document.createTextNode('Due Date: ');
+    label.appendChild(text);
     const todoDate = document.createElement('input');
     todoDate.type = 'date';
     todoDate.className = 'todo-date';
     todoDate.value = todo.dueDate || '';
 
-    // Create delete button
-    const deleteButton = document.createElement('button');
-    deleteButton.className = 'delete-button';
-    deleteButton.textContent = 'Delete';
-    deleteButton.addEventListener('click', () => onDelete(todo.id));
-
     // Assemble the todo item
     todoItem.appendChild(checkbox);
     todoItem.appendChild(todoText);
+    todoItem.appendChild(label);
     todoItem.appendChild(todoDate);
-    todoItem.appendChild(deleteButton);
 
     return todoItem;
 }

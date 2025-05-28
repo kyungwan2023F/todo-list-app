@@ -98,3 +98,9 @@ body {
 .delete-button:hover {
     background-color: #b71c1c;
 }
+
+form label {
+    font-weight: bold;
+    color: black;
+}
+

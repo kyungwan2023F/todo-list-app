@@ -74,7 +74,6 @@ function renderApp() {
 }
 
 function loadSideBar() {
-  const todoArea = document.getElementById('todoArea');
   const sideBar = document.createElement('div');
   sideBar.className = 'sideBar-container';
 
@@ -96,10 +95,9 @@ function loadSideBar() {
 }
 
 function showAddTodo() {
-  const todoArea = document.getElementById('todoArea');
   // Create the overlay (dim background)
   const overlay = document.createElement('div');
-  overlay.style.position = 'absolute';
+  overlay.style.position = 'fixed';
   overlay.style.top = 0;
   overlay.style.left = 0;
   overlay.style.width = '100%';
@@ -117,25 +115,25 @@ function showAddTodo() {
   form.style.borderRadius = '8px';
   form.style.boxShadow = '0 0 10px rgba(0,0,0,0.2)';
   form.style.width = '300px';
-  form.style.maxWidth = '90%'; // Responsive fallback
+  form.style.maxWidth = '90%';
 
   form.innerHTML = `
-  <label>
-    Task: <input type="text" id="todoText" required />
-  </label><br/><br/>
-  <label>
-    Due Date: <input type="date" id="todoDueDate" required />
-  </label><br/><br/>
-  <button type="submit">Add</button>
-  <button type="button" id="cancelBtn">Cancel</button>
-`;
+    <label>
+      Task: <input type="text" id="todoText" required />
+    </label><br/><br/>
+    <label>
+      Due Date: <input type="date" id="todoDueDate" required />
+    </label><br/><br/>
+    <button type="submit">Add</button>
+    <button type="button" id="cancelBtn">Cancel</button>
+  `;
 
   overlay.appendChild(form);
-  todoArea.appendChild(overlay);
+  document.body.appendChild(overlay);
 
+  // Handle form submission
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-
     const text = form.querySelector('#todoText').value.trim();
     const dueDate = form.querySelector('#todoDueDate').value;
 
@@ -146,11 +144,25 @@ function showAddTodo() {
         displayToDos(currentProject);
       }
     }
-  })
+    document.body.removeChild(overlay);
+  });
+
+  // Handle cancel button
+  form.querySelector('#cancelBtn').addEventListener('click', () => {
+    document.body.removeChild(overlay);
+  });
+
+  // Handle clicking outside the modal
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      document.body.removeChild(overlay);
+    }
+  });
 }
 
 function addNewTodo(projectID, text, dueDate) {
   const project = projects.find(p => p.id === projectID);
+  if (!project) return;
 
   const nextId = project.todos.length > 0
     ? Math.max(...project.todos.map(t => t.id)) + 1
@@ -164,22 +176,126 @@ function addNewTodo(projectID, text, dueDate) {
   });
 }
 
+function onToggleComplete(todoId) {
+  const currentProject = projects.find(p => p.id === currentProjectId);
+  if (currentProject) {
+    const todo = currentProject.todos.find(t => t.id === todoId);
+    if (todo) {
+      todo.completed = !todo.completed;
+      displayToDos(currentProject);
+    }
+  }
+}
 
 function displayToDos(project) {
   const todoArea = document.getElementById('todoArea');
   todoArea.innerHTML = '';
+
   const targetProject = projects.find(p => p.id === project.id);
-  targetProject.todos.forEach(todo => {
+  if (!targetProject) return;
+
+  targetProject.todos.forEach((todo, index) => {
     const todoItem = loadTodoItem(todo);
+
+    // Create delete button
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'delete-button';
+    deleteButton.textContent = 'Delete';
+    deleteButton.addEventListener('click', () => {
+      targetProject.todos.splice(index, 1);
+      displayToDos(project);
+    });
+
+    todoItem.appendChild(deleteButton);
     todoArea.appendChild(todoItem);
   });
+
   const addToDoButton = document.createElement('button');
   addToDoButton.className = 'add-Button';
   addToDoButton.textContent = 'Add ToDo';
-
   addToDoButton.addEventListener('click', () => showAddTodo());
   todoArea.appendChild(addToDoButton);
+
+  setupDragAndDrop(todoArea, addToDoButton);
 }
+
+function getDragAfterElement(container, y) {
+  const elements = [...container.querySelectorAll('.todo-item:not(.dragging)')];
+
+  return elements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - (box.top + box.height / 2);
+
+    if (offset < 0 && offset > closest.offset) {
+      return { offset, element: child };
+    } else {
+      return closest;
+    }
+  }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+}
+
+function setupDragAndDrop(todoArea, addToDoButton) {
+  // Remove any previous listeners first (optional safety)
+  todoArea.replaceWith(todoArea.cloneNode(false)); // Clean slate
+  const freshTodoArea = document.getElementById('todoArea');
+
+  // Re-append all current todos (re-render) and add drag events
+  const targetProject = projects.find(p => p.id === currentProjectId);
+  if (!targetProject) return;
+
+  targetProject.todos.forEach(todo => {
+    const todoItem = loadTodoItem(todo); // has drag events already
+
+    // Add delete button again
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'delete-button';
+    deleteButton.textContent = 'Delete';
+    deleteButton.addEventListener('click', () => {
+      const index = targetProject.todos.findIndex(t => t.id === todo.id);
+      if (index !== -1) {
+        targetProject.todos.splice(index, 1);
+        displayToDos(targetProject);
+      }
+    });
+
+    todoItem.appendChild(deleteButton);
+    freshTodoArea.appendChild(todoItem);
+  });
+
+  freshTodoArea.appendChild(addToDoButton);
+
+  // Add drag handlers
+  freshTodoArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const dragging = document.querySelector('.dragging');
+    const afterElement = getDragAfterElement(freshTodoArea, e.clientY);
+
+    if (dragging && freshTodoArea.contains(dragging)) {
+      if (afterElement && freshTodoArea.contains(afterElement)) {
+        freshTodoArea.insertBefore(dragging, afterElement);
+      } else {
+        freshTodoArea.insertBefore(dragging, addToDoButton);
+      }
+    }
+  });
+
+  freshTodoArea.addEventListener('drop', () => {
+    const newOrder = [...freshTodoArea.querySelectorAll('.todo-item')]
+      .map(item => parseInt(item.dataset.id));
+
+    if (targetProject) {
+      targetProject.todos = newOrder
+        .map(id => targetProject.todos.find(t => t.id === id))
+        .filter(Boolean);
+    }
+  });
+}
+
+
+
+
+// Make onToggleComplete globally available for TodoItem.js
+window.onToggleComplete = onToggleComplete;
 
 console.log('Todo list app initialized');
 document.addEventListener('DOMContentLoaded', renderApp);
