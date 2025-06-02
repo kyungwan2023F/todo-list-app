@@ -43,6 +43,15 @@ body {
     transition: background-color 0.2s ease;
 }
 
+.add-project-button {
+    cursor: pointer;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    background-color: #2e2e2e;
+    color: white;
+    transition: background-color 0.2s ease;
+}
+
 .projectContainer:hover {
     background-color: #E5751F;
 }
@@ -108,3 +117,41 @@ form label {
     font-weight: bold;
     color: black;
 }
+
+.add-Button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: #4caf50; /* green */
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: background-color 0.2s ease;
+  }
+  
+  .add-Button:hover {
+    background-color: #45a049;
+  }
+  
+  .add-Button:active {
+    background-color: #3e8e41;
+  }
+  
+  .add-Button i {
+    font-size: 1.2rem;
+  }
+
+  .empty-message {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 6px;
+    max-width: 80%;
+    text-align: center;
+  }

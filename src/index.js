@@ -98,7 +98,94 @@ function loadSideBar() {
     });
     sideBar.appendChild(projectItem);
   });
+
+  const addProjectButton = document.createElement('button');
+  addProjectButton.className = 'projectContainer';
+  addProjectButton.textContent = '➕';
+  addProjectButton.addEventListener('click', () => {
+    showAddProject();
+  });
+  sideBar.appendChild(addProjectButton);
   return sideBar;
+}
+
+function renderSideBar() {
+  const oldSideBar = document.querySelector('.sideBar-container');
+  const newSideBar = loadSideBar();
+  if (oldSideBar) {
+    oldSideBar.replaceWith(newSideBar);
+  }
+}
+
+function showAddProject() {
+  // Create the overlay (dim background)
+  const overlay = document.createElement('div');
+  overlay.style.position = 'fixed';
+  overlay.style.top = 0;
+  overlay.style.left = 0;
+  overlay.style.width = '100%';
+  overlay.style.height = '100%';
+  overlay.style.background = 'rgba(0, 0, 0, 0.3)';
+  overlay.style.display = 'flex';
+  overlay.style.justifyContent = 'center';
+  overlay.style.alignItems = 'center';
+  overlay.style.zIndex = 10;
+
+  // Create the modal/dialog form
+  const form = document.createElement('form');
+  form.style.background = 'white';
+  form.style.padding = '20px';
+  form.style.borderRadius = '8px';
+  form.style.boxShadow = '0 0 10px rgba(0,0,0,0.2)';
+  form.style.width = '300px';
+  form.style.maxWidth = '90%';
+
+  form.innerHTML = `
+    <label>
+      Project Name: <input type="text" id="projectName" required />
+    </label><br/><br/>
+    <button type="submit">Add</button>
+    <button type="button" id="cancelBtn">Cancel</button>
+  `;
+
+  overlay.appendChild(form);
+  document.body.appendChild(overlay);
+
+  // Handle form submission
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const projectName = form.querySelector('#projectName').value.trim();
+
+    if (projectName) {
+      addNewProject(projectName);
+      renderSideBar();
+    }
+    document.body.removeChild(overlay);
+  });
+
+  // Handle cancel button
+  form.querySelector('#cancelBtn').addEventListener('click', () => {
+    document.body.removeChild(overlay);
+  });
+
+  // Handle clicking outside the modal
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      document.body.removeChild(overlay);
+    }
+  });
+}
+
+function addNewProject(projectTitle) {
+  const nextId = projects.length > 0
+    ? Math.max(...projects.map(p => p.id)) + 1
+    : 1;
+
+  projects.push({
+    id: nextId,
+    name: projectTitle,
+    todos: []
+  });
 }
 
 function showAddTodo() {
@@ -242,13 +329,32 @@ function getDragAfterElement(container, y) {
 }
 
 function setupDragAndDrop(todoArea, addToDoButton) {
-  // Remove any previous listeners first (optional safety)
   todoArea.replaceWith(todoArea.cloneNode(false)); // Clean slate
   const freshTodoArea = document.getElementById('todoArea');
 
   // Re-append all current todos (re-render) and add drag events
   const targetProject = projects.find(p => p.id === currentProjectId);
   if (!targetProject) return;
+
+  if (!targetProject.todos.length) {
+    const emptyWrapper = document.createElement('div');
+    emptyWrapper.className = 'empty-state';
+
+    const emptyMessage = document.createElement('p');
+    emptyMessage.className = 'empty-message';
+    emptyMessage.textContent = 'No tasks yet. Add one to get started!';
+
+    const addToDoButton = document.createElement('button');
+    addToDoButton.className = 'add-Button new-project';
+    addToDoButton.textContent = 'Add ToDo';
+    addToDoButton.addEventListener('click', () => showAddTodo());
+
+    emptyWrapper.appendChild(emptyMessage);
+    emptyWrapper.appendChild(addToDoButton);
+    freshTodoArea.appendChild(emptyWrapper);
+
+    return;
+  }
 
   targetProject.todos.forEach(todo => {
     const todoItem = loadTodoItem(todo); // has drag events already
