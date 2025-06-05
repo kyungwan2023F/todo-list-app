@@ -81,7 +81,7 @@ function loadSideBar() {
   sideBarHeader.textContent = 'My Projects';
 
   sideBar.appendChild(sideBarHeader);
-  projects.forEach(project => {
+  projects.forEach((project, index) => {
     const projectItem = document.createElement('div');
     projectItem.className = 'projectContainer';
     projectItem.textContent = project.name;
@@ -96,6 +96,15 @@ function loadSideBar() {
       currentProjectId = project.id;
       displayToDos(project);
     });
+    const deleteButton = document.createElement('button');
+    deleteButton.className = 'delete-Button';
+    deleteButton.textContent = 'X';
+    deleteButton.addEventListener('click', () => {
+      projects.splice(index, 1);
+      renderSideBar();
+    });
+    projectItem.appendChild(deleteButton);
+    
     sideBar.appendChild(projectItem);
   });
 

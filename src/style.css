@@ -35,6 +35,9 @@ body {
 }
 
 .projectContainer {
+    position: relative;
+    display: flex;
+    align-items: center;
     cursor: pointer;
     padding: 0.75rem 1rem;
     border-radius: 6px;
@@ -59,6 +62,30 @@ body {
 .projectContainer.selected {
     background-color: #E5751F;
     font-weight: bold;
+}
+
+.projectContainer .delete-Button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: transparent;
+    color: #888;
+    cursor: pointer;
+    padding: 0 6px;
+    transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.delete-Button:hover {
+    background-color: grey;
+    color: #e53935;
+    /* red on hover */
+    transform: scale(1.2);
 }
 
 .todo-item {
@@ -123,7 +150,8 @@ form label {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    background-color: #4caf50; /* green */
+    background-color: #4caf50;
+    /* green */
     color: white;
     border: none;
     padding: 10px 16px;
@@ -132,21 +160,21 @@ form label {
     cursor: pointer;
     margin-top: 16px;
     transition: background-color 0.2s ease;
-  }
-  
-  .add-Button:hover {
-    background-color: #45a049;
-  }
-  
-  .add-Button:active {
-    background-color: #3e8e41;
-  }
-  
-  .add-Button i {
-    font-size: 1.2rem;
-  }
+}
 
-  .empty-message {
+.add-Button:hover {
+    background-color: #45a049;
+}
+
+.add-Button:active {
+    background-color: #3e8e41;
+}
+
+.add-Button i {
+    font-size: 1.2rem;
+}
+
+.empty-message {
     font-size: 1.5rem;
     font-weight: 500;
     color: white;
@@ -154,4 +182,4 @@ form label {
     border-radius: 6px;
     max-width: 80%;
     text-align: center;
-  }
+}
