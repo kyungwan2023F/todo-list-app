@@ -5,62 +5,19 @@ import './style.css';
 let currentProjectId = null;
 
 // Todo state
-let projects = [
-  {
-    id: 1,
-    name: 'Learning Path',
-    todos: [
-      {
-        id: 1,
-        text: 'Learn JavaScript',
-        completed: false,
-        dueDate: '2025-05-10'
-      },
-      {
-        id: 2,
-        text: 'Study React',
-        completed: false,
-        dueDate: '2025-05-20'
-      }
-    ]
-  },
-  {
-    id: 2,
-    name: 'Personal Projects',
-    todos: [
-      {
-        id: 1,
-        text: 'Build a todo app',
-        completed: false,
-        dueDate: '2025-05-15'
-      },
-      {
-        id: 2,
-        text: 'Create portfolio website',
-        completed: false,
-        dueDate: '2025-06-01'
-      }
-    ]
-  },
-  {
-    id: 3,
-    name: 'Work Tasks',
-    todos: [
-      {
-        id: 1,
-        text: 'Code review PR #123',
-        completed: true,
-        dueDate: '2025-05-05'
-      },
-      {
-        id: 2,
-        text: 'Update documentation',
-        completed: false,
-        dueDate: '2025-05-12'
-      }
-    ]
+let projects = [];
+
+function loadProjectsFromLocalStorage() {
+  const storedProjects = localStorage.getItem('projects');
+  if (storedProjects) {
+    try {
+      projects = JSON.parse(storedProjects);
+    } catch (e) {
+      console.error('Failed to parse stored projects:', e);
+      projects = [];
+    }
   }
-];
+}
 
 function renderApp() {
   const appContainer = document.getElementById('content');
@@ -101,10 +58,11 @@ function loadSideBar() {
     deleteButton.textContent = 'X';
     deleteButton.addEventListener('click', () => {
       projects.splice(index, 1);
+      saveProjectsToLocalStorage();
       renderSideBar();
     });
     projectItem.appendChild(deleteButton);
-    
+
     sideBar.appendChild(projectItem);
   });
 
@@ -195,6 +153,7 @@ function addNewProject(projectTitle) {
     name: projectTitle,
     todos: []
   });
+  saveProjectsToLocalStorage();
 }
 
 function showAddTodo() {
@@ -277,6 +236,12 @@ function addNewTodo(projectID, text, dueDate) {
     completed: false,
     dueDate: dueDate
   });
+
+  saveProjectsToLocalStorage();
+}
+
+function saveProjectsToLocalStorage() {
+  localStorage.setItem('projects', JSON.stringify(projects));
 }
 
 function onToggleComplete(todoId) {
@@ -306,6 +271,7 @@ function displayToDos(project) {
     deleteButton.textContent = 'Delete';
     deleteButton.addEventListener('click', () => {
       targetProject.todos.splice(index, 1);
+      saveProjectsToLocalStorage();
       displayToDos(project);
     });
 
@@ -376,6 +342,7 @@ function setupDragAndDrop(todoArea, addToDoButton) {
       const index = targetProject.todos.findIndex(t => t.id === todo.id);
       if (index !== -1) {
         targetProject.todos.splice(index, 1);
+        saveProjectsToLocalStorage();
         displayToDos(targetProject);
       }
     });
@@ -410,6 +377,7 @@ function setupDragAndDrop(todoArea, addToDoButton) {
         .map(id => targetProject.todos.find(t => t.id === id))
         .filter(Boolean);
     }
+    saveProjectsToLocalStorage();
   });
 }
 
@@ -420,4 +388,7 @@ function setupDragAndDrop(todoArea, addToDoButton) {
 window.onToggleComplete = onToggleComplete;
 
 console.log('Todo list app initialized');
-document.addEventListener('DOMContentLoaded', renderApp);
+document.addEventListener('DOMContentLoaded', () => {
+  loadProjectsFromLocalStorage();
+  renderApp();
+});
